@@ -351,3 +351,6 @@ MigrationBackup/
 
 
 *.code-workspace
+
+appkeys/
+vene/
