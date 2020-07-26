@@ -1,9 +1,9 @@
 import requests
 from requests.exceptions import HTTPError
-from google.cloud import firestore
 import base64
+import firebase_admin
+from firebase_admin import firestore 
 
-    
 def getData(companyID):
     API_URL = "https://www.cse.lk/api/companyChartDataByStock?stockId={}&period=1"
     
@@ -25,12 +25,13 @@ def getData(companyID):
         print(f'Other error occurred: {err}')
         
     pass
-
-def storeData(companyID, dataList):
     
+def storeData(companyID, dataList):
     try:
         # init firestore
-        db = firestore.Client()
+        #db = firestore.Client()
+        
+        db = firebase_admin.firestore.client()
 
         for target_list in dataList:
             data = {
@@ -47,6 +48,7 @@ def storeData(companyID, dataList):
             db.collection(u'csedata').document(key_format).set(data)
 
             pass
+
         pass
     except Exception as err:
         print(f'Error occurred: {err}')
@@ -55,31 +57,28 @@ def storeData(companyID, dataList):
     pass
 
 
+
 def run(companyID):
     print(companyID)
     data = getData(companyID)
     storeData(companyID, data)
     pass
 
-#print("208 - #COMB.N0000")
-#COMB.N0000
-run(208)
+def pubsub(event, context):
+    """Triggered from a message on a Cloud Pub/Sub topic.
+    Args:
+         event (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    try:
+        firebase_admin.initialize_app()
+        pass
+    except Exception as err:
+        print(f'Error occurred: {err}')
+        pass
 
-#COMB.X0000
-run(396)
+    pubsub_message = base64.b64decode(event['data']).decode('utf-8')
+    run(int(pubsub_message))
 
-#HNB.N0000
-run(172)
-
-#HNB.X0000
-run(340)
-
-#KHL.N0000
-run(104)
-
-#GHLL.N0000
-run(116)
-
-#DIAL.N0000
-run(471)
-
+    pass
+    
