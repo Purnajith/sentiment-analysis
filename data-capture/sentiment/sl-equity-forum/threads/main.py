@@ -2,11 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime, timedelta
+import firebase_admin
+from firebase_admin import firestore
+
+def convertToUnixEpoc(dateTimeData):
+    return (dateTimeData - datetime(1970, 1, 1)).total_seconds()
 
 def extractContent(URL, container):
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
-    results = soup.find_all("div", {"class" : container})
+    results = soup.find_all('div', class_ = container)
     return results
 
 def extractLinks(content, format, partition, extractContentNo):
@@ -51,13 +56,13 @@ def getUnixDateTime(contentData):
         datetimeValue = datetimeValue.replace(hour=timeTemp.hour)
         datetimeValue = datetimeValue.replace(minute=timeTemp.minute)
 
-        dataTimeAsString = datetimeValue.strftime("%a %b %d, %Y %I:%M %p")
+        dataTimeAsString = datetimeValue.strftime("on %a %b %d, %Y %I:%M %p")
         pass
 
-    finalDateTime = datetime.strptime(dataTimeAsString, "%a %b %d, %Y %I:%M %p")
+    finalDateTime = datetime.strptime(dataTimeAsString, "on %a %b %d, %Y %I:%M %p")
 
 
-    return (finalDateTime - datetime(1970, 1, 1)).total_seconds()
+    return convertToUnixEpoc(finalDateTime)
 
 
 def getUserInfo(body):
@@ -117,69 +122,60 @@ def getUserInfo(body):
         else :
             if infoTypeID == 1:
                 posts = userInfoList
+                infoTypeID = 0
                 pass
             elif infoTypeID == 2:
                 equityStarts = userInfoList
+                infoTypeID = 0
                 pass
             elif infoTypeID == 3:
                 reputation = userInfoList
+                infoTypeID = 0
                 pass
             elif infoTypeID == 4:
                 joinDate = userInfoList
+                infoTypeID = 0
                 pass
             elif infoTypeID == 5:
                 location = userInfoList
-                pass
+                infoTypeID = 0
             else:
                 pass
             pass
         pass
     pass
 
-
-
-
-
-
-def run(url):
-    data = extractContent("https://srilankaequity.forumotion.com/t57943p200-east-west-properties-plc-east-n0000", "topic")
-
-    for dataList in data:
-        pass
-
-
-
-    c = data[0].find_all("div", {"class" : 'post'})[0]
-
-    head = c.find('div', class_='posthead') 
-    #.find_all("div", {"class" : 'posthead'})[0] 
-    print("id")
-    print(head.get('id').partition('p')[2])
-
-    print("dateTime")
-    for contentData in head.find('h2'):
-        if isinstance(contentData, str) and contentData != ' ':
-            print(getUnixDateTime(contentData))
-            pass
-        pass
-
-    body = c.find('div', class_='postbody') 
-
     
 
-    print("entry")
+    return {
+        "userName" : userName,
+        "role" : role,
+        "posts" : posts,
+        "equityStarts" : equityStarts,
+        "reputation" : reputation,
+        "joinDate" : convertToUnixEpoc(datetime.strptime(joinDate, "%Y-%m-%d")),
+        "location" : location
+    }
+
+def getEntry(body):
+    result = ''
     for entryContentList in body.find('div', class_='entry-content'):
         if entryContentList.text != '':
             for target_list in entryContentList:
                 if target_list.text != '':
-                    print(target_list.text)
+                    result = target_list.text
                     pass
                 pass
+            pass
         pass
+    pass
+    return result
 
-    footerData = c.find('div', class_='postfoot')
+def getFooterContent(footer):
+    likeCount = 0
+    disLikeCount = 0
 
-    likeContent  = footerData.find('div', class_='fa_like_div')
+    likeContent  = footer.find('div', class_='fa_like_div')
     #likeContent.find('span', class_='rep-nb')
     likeTypeID = 0
     for contentList in likeContent:
@@ -192,42 +188,125 @@ def run(url):
                     likeTypeID = 2
                     pass
                 else :
-                    
                     pass
             pass
             
             if likeTypeID > 0 :
-                print("like type")
-                print(likeTypeID)
-                if target_list.text != '':
-                    print(target_list.text)
+                if target_list.text != '' and isinstance(target_list.text, int):
+                    if likeTypeID == 1:
+                        likeCount = int(target_list.text)
+                    elif likeTypeID == 2:
+                        disLikeCount = int(target_list.text)
                     pass
-                likeTypeID = 0
+                    likeTypeID = 0
                 pass
+
         pass
-
-    #print(body.find('div', class_='entry-content').text)
-
-
-    #print(c.prettify())
-
-    #for target_list in data:
-    #   for post in target_list.find_all("div", {"class" : 'post'}):
-    #       print(post.prettify())
-    #       pass
-    #   pass
-
-    #for threadLink in links:
-        
-
-    #    pass
-
-    
+    return {
+        "likeCount" : likeCount,
+        "disLikeCount" : disLikeCount
+    }
 
 
+
+def run(url):
+    db = firebase_admin.firestore.client()
+    fullContent = extractContent(url, "main paged")
+
+    for fullContentList in fullContent:
+
+        titleContent = fullContentList.find_all('div', class_='paged-head')
+
+        postTitle = None
+
+        for titleContentList in titleContent:
+            for htag in titleContentList.find('h1'):
+                if htag != '':
+                    postTitle = htag
+                pass
+            pass
+
+        topicContent = fullContentList.find_all('div', class_='topic')
+
+        for topicContentList in topicContent:
+            data = topicContentList.find_all('div', class_='post')
+
+            for dataList in data:
+                head = dataList.find('div', class_='posthead')
+                body = dataList.find('div', class_='postbody')
+                foot = dataList.find('div', class_='postfoot')
+
+                # id
+                id = head.get('id').partition('p')[2]
+                #date time
+                dateTime = 0
+                #user info
+                userInfo = None
+                #entry
+                entry = None
+                #entry like count
+                entryLikeCount = None
+                #entry dis like count
+                entryDisLikeCount = None
+
+
+                for contentData in head.find('h2'):
+                    if isinstance(contentData, str) and contentData != ' ':
+                        dateTime = getUnixDateTime(contentData)
+                        pass
+                    pass
+
+                # only pick records after 2020 07 01 00:00:00
+                if dateTime > float(1593541800): 
+                    userInfo = getUserInfo(body)
+                    entry =  getEntry(body)
+                    footer  = getFooterContent(foot)
+
+                    userKeyFormat = userInfo['userName'] + "-sef" 
+                    postKeyFormat = id + "-sef" 
+
+                    entryData = {
+                        "id" : id,
+                        "dateTime" : dateTime,
+                        "entry" : entry,
+                        "likeCount" : footer['likeCount'],
+                        "disLikeCount" : footer['disLikeCount'],
+                        "postTitle" : postTitle,
+                        "userName" : userInfo['userName'],
+                        "source" : "sl-equity-form",
+                        "userID" : userKeyFormat
+                    }
+
+                    db.collection(u'users').document(userKeyFormat).set(userInfo)
+                    db.collection(u'posts').document(postKeyFormat).set(entryData)
+
+                    pass
+                pass
+            pass
+        pass
     pass
 
-run("https://srilankaequity.forumotion.com/t57943p200-east-west-properties-plc-east-n0000")
 
+def pubsub(event, context):
+    """Triggered from a message on a Cloud Pub/Sub topic.
+    Args:
+         event (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    try:
+        firebase_admin.initialize_app()
+        pass
+    except Exception as err:
+        print(f'Error occurred: {err}')
+        pass
+
+    URL = "https://srilankaequity.forumotion.com/"
+    content = extractContent(URL, "main-content")
+    links = extractLinks(content, {"href" : lambda L: L and L.startswith('/t')}, "#", 0)    
+
+    for threadLink in links:
+        run(URL + threadLink)
+        pass
+    pass
 
 
