@@ -309,4 +309,3 @@ def pubsub(event, context):
         pass
     pass
 
-
