@@ -39,7 +39,7 @@ def getUnixDateTime(contentData):
     dataTimeAsString = contentData.rstrip().lstrip()
 
     # convert to common date time format
-    if dataTimeAsString.find("at") > 0:
+    if dataTimeAsString.find(" at ") > 0:
         splitDate = dataTimeAsString.split('at')
                 
         dateStringPart = splitDate[0].rstrip().lstrip()
@@ -208,6 +208,53 @@ def getFooterContent(footer):
     }
 
 
+def storeEntry(dataList, postTitle, db): 
+    head = dataList.find('div', class_='posthead')
+    body = dataList.find('div', class_='postbody')
+    foot = dataList.find('div', class_='postfoot')
+
+    # id
+    entryID = head.get('id').partition('p')[2]
+    #date time
+    dateTime = 0
+    #user info
+    userInfo = None
+    #entry
+    entry = None
+
+    for contentData in head.find('h2'):
+        if isinstance(contentData, str) and contentData != ' ':
+            dateTime = getUnixDateTime(contentData)
+            pass
+        pass
+
+    # only pick records after 2020 07 01 00:00:00
+    if dateTime > float(1593541800): 
+        userInfo = getUserInfo(body)
+        entry =  getEntry(body)
+        footer  = getFooterContent(foot)
+
+        userKeyFormat = userInfo['userName'] + "-sef" 
+        postKeyFormat = entryID + "-sef" 
+
+        entryData = {
+            "id" : entryID,
+            "dateTime" : dateTime,
+            "entry" : entry,
+            "likeCount" : footer['likeCount'],
+            "disLikeCount" : footer['disLikeCount'],
+            "postTitle" : postTitle,
+            "userName" : userInfo['userName'],
+            "source" : "sl-equity-form",
+            "userID" : userKeyFormat
+        }
+
+        db.collection(u'users').document(userKeyFormat).set(userInfo)
+        db.collection(u'posts').document(postKeyFormat).set(entryData)
+
+        pass
+    pass
+
 
 def run(url):
     db = firebase_admin.firestore.client()
@@ -232,55 +279,12 @@ def run(url):
             data = topicContentList.find_all('div', class_='post')
 
             for dataList in data:
-                head = dataList.find('div', class_='posthead')
-                body = dataList.find('div', class_='postbody')
-                foot = dataList.find('div', class_='postfoot')
-
-                # id
-                id = head.get('id').partition('p')[2]
-                #date time
-                dateTime = 0
-                #user info
-                userInfo = None
-                #entry
-                entry = None
-                #entry like count
-                entryLikeCount = None
-                #entry dis like count
-                entryDisLikeCount = None
-
-
-                for contentData in head.find('h2'):
-                    if isinstance(contentData, str) and contentData != ' ':
-                        dateTime = getUnixDateTime(contentData)
-                        pass
+                try:
+                    storeEntry(dataList, postTitle, db)
                     pass
-
-                # only pick records after 2020 07 01 00:00:00
-                if dateTime > float(1593541800): 
-                    userInfo = getUserInfo(body)
-                    entry =  getEntry(body)
-                    footer  = getFooterContent(foot)
-
-                    userKeyFormat = userInfo['userName'] + "-sef" 
-                    postKeyFormat = id + "-sef" 
-
-                    entryData = {
-                        "id" : id,
-                        "dateTime" : dateTime,
-                        "entry" : entry,
-                        "likeCount" : footer['likeCount'],
-                        "disLikeCount" : footer['disLikeCount'],
-                        "postTitle" : postTitle,
-                        "userName" : userInfo['userName'],
-                        "source" : "sl-equity-form",
-                        "userID" : userKeyFormat
-                    }
-
-                    db.collection(u'users').document(userKeyFormat).set(userInfo)
-                    db.collection(u'posts').document(postKeyFormat).set(entryData)
-
-                    pass
+                except Exception as err:
+                    print(f'Error occurred: {err}')
+                    storeEntry(dataList, postTitle, db)
                 pass
             pass
         pass
@@ -308,4 +312,3 @@ def pubsub(event, context):
         run(URL + threadLink)
         pass
     pass
-
