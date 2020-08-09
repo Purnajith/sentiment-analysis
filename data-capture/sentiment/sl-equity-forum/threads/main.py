@@ -4,6 +4,7 @@ import re
 from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import firestore
+import base64
 
 def convertToUnixEpoc(dateTimeData):
     return (dateTimeData - datetime(1970, 1, 1)).total_seconds()
@@ -13,27 +14,6 @@ def extractContent(URL, container):
     soup = BeautifulSoup(page.content, 'html.parser')
     results = soup.find_all('div', class_ = container)
     return results
-
-def extractLinks(content, format, partition, extractContentNo):
-    result = []
-    for target_list in content:
-        links = target_list.find_all("a", format)
-        for link in links:
-            # get link
-            data = link['href']
-
-            #  manipulate data
-            if partition != "":
-                data = data.partition(partition)[extractContentNo]
-                pass
-            
-            # add to list
-            result.append(data)
-            pass
-        pass
-    return result
-
-
 
 def getUnixDateTime(contentData):
     dataTimeAsString = contentData.rstrip().lstrip()
@@ -303,11 +283,10 @@ def pubsub(event, context):
         print(f'Error occurred: {err}')
         pass
 
-    URL = "https://srilankaequity.forumotion.com/"
-    content = extractContent(URL, "main-content")
-    links = extractLinks(content, {"href" : lambda L: L and L.startswith('/t')}, "#", 0)    
+    pubsub_message = base64.b64decode(event['data']).decode('utf-8')
 
-    for threadLink in links:
-        run(URL + threadLink)
-        pass
+    print(str(pubsub_message))
+
+    run(str(pubsub_message))
+
     pass

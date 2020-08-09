@@ -1,14 +1,14 @@
 import requests
 from bs4 import BeautifulSoup
-from requests.exceptions import HTTPError
-import base64
-import firebase_admin
-from firebase_admin import firestore
+import re
+from google.cloud import pubsub_v1
+import os
+
 
 def extractContent(URL, container):
     page = requests.get(URL)
     soup = BeautifulSoup(page.content, 'html.parser')
-    results = soup.find_all("div", {"class" : container})
+    results = soup.find_all('div', class_ = container)
     return results
 
 def extractLinks(content, format, partition, extractContentNo):
@@ -23,12 +23,12 @@ def extractLinks(content, format, partition, extractContentNo):
             if partition != "":
                 data = data.partition(partition)[extractContentNo]
                 pass
-            
             # add to list
             result.append(data)
             pass
         pass
     return result
+
 
 def pubsub(event, context):
     """Triggered from a message on a Cloud Pub/Sub topic.
@@ -36,15 +36,24 @@ def pubsub(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    try:
-        firebase_admin.initialize_app()
-        pass
-    except Exception as err:
-        print(f'Error occurred: {err}')
-        pass
 
-    URL = "https://srilankaequity.forumotion.com/"
+    publisher = pubsub_v1.PublisherClient()
+
+    topic = 'projects/{project_id}/topics/{topic}'.format(
+    project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
+    topic='sef-forum-links',  # Set this to something appropriate.
+    )
+
+    URL = "https://srilankaequity.forumotion.com"
     content = extractContent(URL, "main-content")
+
     links = extractLinks(content, {"href" : lambda L: L and L.startswith('/t')}, "#", 0)    
 
+    for threadLink in links:
+        #send message to topic with link     
+        link = URL + threadLink
+        publisher.publish(topic, data=link.encode("utf-8"))
+        pass
     pass
+
+pubsub(None, None)
