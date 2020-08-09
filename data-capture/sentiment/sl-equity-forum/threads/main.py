@@ -284,7 +284,6 @@ def run(url):
                     pass
                 except Exception as err:
                     print(f'Error occurred: {err}')
-                    storeEntry(dataList, postTitle, db)
                 pass
             pass
         pass
