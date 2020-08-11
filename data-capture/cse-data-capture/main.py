@@ -29,8 +29,6 @@ def getData(companyID):
 def storeData(companyID, dataList):
     try:
         # init firestore
-        #db = firestore.Client()
-        
         db = firebase_admin.firestore.client()
 
         for target_list in dataList:
