@@ -23,9 +23,10 @@ def tokenize(text):
     return wordTokens
 
 def getDocument(db, ID):
-    doc_ref = db.collection(u'posts').document(ID)
+    return db.collection(u'posts').document(ID)
 
-    doc = doc_ref.get()
+def getDocumentWithData(db, ID):
+    doc = getDocument(db, ID).get()
     if doc.exists:
         return doc.to_dict()
     else:
@@ -47,8 +48,6 @@ def translateToEnglish(text):
 
     # Detail on supported types can be found here:
     # https://cloud.google.com/translate/docs/supported-formats
-
-    print(os.getenv('GOOGLE_CLOUD_PROJECT'))
 
     response = client.translate_text(
         parent='projects/{}'.format(os.getenv('GOOGLE_CLOUD_PROJECT')),
@@ -83,18 +82,16 @@ def removeStopwords(stopwords, tokens):
 
 # updates stem words according to passed stem list and returns the list of tokens 
 def updateToStem(tokens):
-    result = []
     ps = PorterStemmer()
-    for token in tokens:
-        row = ps.stem(token)
-        if not row.empty :
-            result.append(row["stem"].values.tolist()[0])
-        else :
-            result.append(token)
-    return result
+    return [ps.stem(token) for token in tokens]  
 
-
-
+# convert back to a single array
+def getSingleArray(arrayList):
+    result = []
+    for listData in arrayList:
+        result = result + listData
+        pass
+    return  result
 
 # select single record
 # check if has sinhala 
@@ -117,6 +114,13 @@ def pubsub(event, context):
         print(f'Error occurred: {err}')
         pass
 
+    #postID = base64.b64decode(event['data']).decode('utf-8')
+
+    #'365185-sef'
+    #postID = '365185-sef'
+    #postID = '364158-sef'
+    postID = 'testID'
+
     # get all current records 
     db = firebase_admin.firestore.client()
 
@@ -125,12 +129,10 @@ def pubsub(event, context):
     for doc in collection:
         # select single record
         #data = getDocument(db, doc.id)
-        data = getDocument(db, '365185-sef')
+        data = getDocumentWithData(db, postID)
 
-        print(data['postTitle'])
-        print(data['entry'])
-
-        print(os.environ['GOOGLE_CLOUD_PROJECT'])
+        #print(data['postTitle'])
+        #print(data['entry'])
 
         # check if has sinhala 
         textToProcess = getEnglishText(data['postTitle'])
@@ -139,26 +141,25 @@ def pubsub(event, context):
         if textToProcess != '' : 
             # clean text
             textToProcess = cleanText(textToProcess)
-            print(textToProcess)
+            #print(textToProcess)
 
             if textToProcess != '':
                 # tokenize
                 # https://stackoverflow.com/a/62209250
                 # https://stackoverflow.com/a/58548615
                 tokens = tokenize(textToProcess)
-                print(tokens)
-
-                print(os.environ['NLTK_DATA'])
 
                 # remove stop words
-                stopwordList = stopwords.words('english')
-                stopWordsRemoved = removeStopwords(stopwordList, tokens)
-                print(stopWordsRemoved)
+                stopwordList = set(stopwords.words('english'))
+                stopWordsRemoved = [removeStopwords(stopwordList, tokenList) for tokenList in tokens]
 
                 # update to stem
-                stemWordUpdate = updateToStem(stopWordsRemoved)
-                print(stemWordUpdate)
-                
+                stemWordUpdate = [updateToStem(tokenList) for tokenList in stopWordsRemoved]
+
+                # update document
+                db.collection(u'posts').document(postID).update({u'fullArray': getSingleArray(stopWordsRemoved)})
+                db.collection(u'posts').document(postID).update({u'finalArray': getSingleArray(stemWordUpdate)})
+
                 pass
             pass
         pass
