@@ -55,5 +55,3 @@ def pubsub(event, context):
         publisher.publish(topic, data=link.encode("utf-8"))
         pass
     pass
-
-pubsub(None, None)

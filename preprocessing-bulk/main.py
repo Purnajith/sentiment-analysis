@@ -152,8 +152,7 @@ def pubsub(event, context):
     # get all current records 
     db = firebase_admin.firestore.client()
 
-    #collection = db.collection(u'posts').where(u'preprocessed') .order_by(u'preprocessed').limit(100).get()
-    collection = db.collection(u'posts').where(u'dateTime', '>', int(dateTimeLast)).order_by(u'dateTime').limit(200).stream()
+    collection = db.collection(u'posts').where(u'dateTime', '>', int(dateTimeLast)).order_by(u'dateTime').limit(100).stream()
 
     try:
         count = 1
