@@ -12,7 +12,7 @@ import os
 #clear the given text using regex 
 def cleanText(text):
     stripped = text.strip()
-    PATTERN = r'[,|.|?|$|#|!|&|*|%|@|(|)|~|^0-9]'
+    PATTERN = r'[,|.|?|$|#|!|&|*|@|(|)|~|:|;|<|>|/]'
     result = re.sub(PATTERN, r'', stripped)
     return result.lower().replace('"', '') 
 
@@ -159,8 +159,6 @@ def pubsub(event, context):
         for doc in collection:
             preprocessDocument(doc, db, count)
             count = count + 1
-            #pubsub_message = base64.b64decode(event['data']).decode('utf-8')
-            #run(int(pubsub_message))
         pass
     except Exception as err:
         print(f'Error occurred: {err}')
