@@ -12,7 +12,7 @@ import os
 #clear the given text using regex 
 def cleanText(text):
     stripped = text.strip()
-    PATTERN = r'[,|.|?|$|#|!|&|*|%|@|(|)|~|^0-9]'
+    PATTERN = r'[,|.|?|$|#|!|&|*|@|(|)|~|:|;|<|>|/]'
     result = re.sub(PATTERN, r'', stripped)
     return result.lower().replace('"', '') 
 
@@ -123,7 +123,6 @@ def preprocessDocument(postID, db):
             db.collection(u'posts').document(postID).update({u'preprocessed': True})
             pass
         pass
-    pass
     pass
 
 # select single record
