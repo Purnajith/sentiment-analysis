@@ -2,5 +2,5 @@
 # package>=version
 firebase_admin
 google-cloud-firestore
-beautifulsoup4
-google-cloud-pubsub
+nltk
+google-cloud-translate

@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import firestore
 import base64
+from google.cloud import pubsub_v1
+import os
 
 def convertToUnixEpoc(dateTimeData):
     return (dateTimeData - datetime(1970, 1, 1)).total_seconds()
@@ -232,6 +234,16 @@ def storeEntry(dataList, postTitle, db):
         db.collection(u'users').document(userKeyFormat).set(userInfo)
         db.collection(u'posts').document(postKeyFormat).set(entryData)
 
+        publisher = pubsub_v1.PublisherClient()
+
+        topic = 'projects/{project_id}/topics/{topic}'.format(
+        project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
+        topic='preprocessing',  # Set this to something appropriate.
+        )
+
+        #send message for pre processing
+        publisher.publish(topic, data=postKeyFormat.encode("utf-8"))
+        print(postKeyFormat)
         pass
     pass
 

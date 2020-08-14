@@ -92,9 +92,9 @@ def getSingleArray(arrayList):
         pass
     return  result
 
-def preprocessDocument(postID, db):
-    data = getDocumentWithData(db, postID)
-    print(postID + ' ' + str(data['dateTime']))
+def preprocessDocument(doc, db, count):
+    data = getDocumentWithData(db, doc.id)
+    print(str(doc.id) + ' ' + str(data['dateTime'])+ ' ' + str(count))
 
     # check if has sinhala 
     textToProcess = getEnglishText(data['postTitle'])
@@ -118,9 +118,9 @@ def preprocessDocument(postID, db):
             stemWordUpdate = [updateToStem(tokenList) for tokenList in stopWordsRemoved]
 
             # update document
-            db.collection(u'posts').document(postID).update({u'fullArray': getSingleArray(stopWordsRemoved)})
-            db.collection(u'posts').document(postID).update({u'finalArray': getSingleArray(stemWordUpdate)})
-            db.collection(u'posts').document(postID).update({u'preprocessed': True})
+            db.collection(u'posts').document(doc.id).update({u'fullArray': getSingleArray(stopWordsRemoved)})
+            db.collection(u'posts').document(doc.id).update({u'finalArray': getSingleArray(stemWordUpdate)})
+            db.collection(u'posts').document(doc.id).update({u'preprocessed': True})
             pass
         pass
     pass
@@ -147,15 +147,24 @@ def pubsub(event, context):
         print(f'Error occurred: {err}')
         pass
 
-    # get post id from data
-    postID = base64.b64decode(event['data']).decode('utf-8')
+    dateTimeLast = base64.b64decode(event['data']).decode('utf-8')
 
     # get all current records 
     db = firebase_admin.firestore.client()
 
+    collection = db.collection(u'posts').where(u'dateTime', '>', int(dateTimeLast)).order_by(u'dateTime').limit(100).stream()
+
     try:
-        preprocessDocument(postID, db)
+        count = 1
+        for doc in collection:
+            preprocessDocument(doc, db, count)
+            count = count + 1
+            #pubsub_message = base64.b64decode(event['data']).decode('utf-8')
+            #run(int(pubsub_message))
+        pass
     except Exception as err:
         print(f'Error occurred: {err}')
         pass
     pass
+
+
