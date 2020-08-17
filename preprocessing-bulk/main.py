@@ -7,6 +7,8 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import os
+from textblob import TextBlob
+
 
 
 #clear the given text using regex 
@@ -22,8 +24,8 @@ def tokenize(text):
     wordTokens = [nltk.word_tokenize(sentence) for sentence in sentences]
     return wordTokens
 
-def getDocumentWithData(db, ID):
-    doc_ref = db.collection(u'posts').document(ID)
+def getDocumentWithData(db, collection, ID):
+    doc_ref = db.collection(collection).document(ID)
 
     doc = doc_ref.get()
     if doc.exists:
@@ -92,8 +94,15 @@ def getSingleArray(arrayList):
         pass
     return  result
 
+def getTextBlobSentiment(text):
+    txtblb = TextBlob(text)
+    if txtblb:
+        return txtblb
+    else :
+        return None
+
 def preprocessDocument(doc, db, count):
-    data = getDocumentWithData(db, doc.id)
+    data = getDocumentWithData(db, 'posts', doc.id)
     print(str(doc.id) + ' ' + str(data['dateTime'])+ ' ' + str(count))
 
     # check if has sinhala 
@@ -117,10 +126,17 @@ def preprocessDocument(doc, db, count):
             # update to stem
             stemWordUpdate = [updateToStem(tokenList) for tokenList in stopWordsRemoved]
 
+            #get sentiment
+            textBlob = getTextBlobSentiment(textToProcess)
+
             # update document
             db.collection(u'posts').document(doc.id).update({u'fullArray': getSingleArray(stopWordsRemoved)})
             db.collection(u'posts').document(doc.id).update({u'finalArray': getSingleArray(stemWordUpdate)})
             db.collection(u'posts').document(doc.id).update({u'preprocessed': True})
+            
+            if textBlob :
+                db.collection(u'posts').document(doc.id).update({u'polarity': textBlob.sentiment.polarity})
+                db.collection(u'posts').document(doc.id).update({u'subjectivity': textBlob.sentiment.subjectivity})
             pass
         pass
     pass
@@ -147,12 +163,13 @@ def pubsub(event, context):
         print(f'Error occurred: {err}')
         pass
 
-    dateTimeLast = base64.b64decode(event['data']).decode('utf-8')
+    #dateTimeLast = base64.b64decode(event['data']).decode('utf-8')
+    dateTimeLast = 1593559320
 
     # get all current records 
     db = firebase_admin.firestore.client()
 
-    collection = db.collection(u'posts').where(u'dateTime', '>', int(dateTimeLast)).order_by(u'dateTime').limit(100).stream()
+    collection = db.collection(u'posts').where(u'dateTime', '>=', int(dateTimeLast)).order_by(u'dateTime').limit(100).stream()
 
     try:
         count = 1
@@ -164,5 +181,3 @@ def pubsub(event, context):
         print(f'Error occurred: {err}')
         pass
     pass
-
-
