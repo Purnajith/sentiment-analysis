@@ -10,8 +10,6 @@ def convertToUnixEpoc(dateTimeData):
     return (dateTimeData - datetime(1970, 1, 1)).total_seconds()
 
 def getTweets(keyWord):
-    print(os.getenv('twitter_consumer_key'))
-    print(os.getenv('twitter_consumer_secret'))
     auth = auth = tweepy.AppAuthHandler(os.getenv('twitter_consumer_key') , os.getenv('twitter_consumer_secret'))
     api = tweepy.API(auth, retry_count= 3, wait_on_rate_limit=True)
 
@@ -88,7 +86,7 @@ def run(keyword):
 
     db = firebase_admin.firestore.client()
 
-    for tweet in getTweets('jkh'):
+    for tweet in getTweets(keyword):
         storeData(tweet, db)
         pass
     pass
@@ -112,5 +110,7 @@ def pubsub(event, context):
     pubsub_message = base64.b64decode(event['data']).decode('utf-8')
 
     if pubsub_message != '':
+        print(pubsub_message)
         run(pubsub_message)
+
     pass
