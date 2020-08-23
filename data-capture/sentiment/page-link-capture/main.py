@@ -29,16 +29,15 @@ def extractLinks(content, format, partition, extractContentNo):
         pass
     return result
 
-def pushMessage(publisher, topic, linkList):
+def pushMessage(publisher, topic, link):
     
     topic = 'projects/{project_id}/topics/{topic}'.format(
     project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
     topic=topic,  # Set this to something appropriate.
     )
 
-    for link in linkList:
-        publisher.publish(topic, data=link.encode("utf-8"))
-        pass
+    print(link)
+    publisher.publish(topic, data=link.encode("utf-8"))
     pass
 
 
@@ -70,7 +69,6 @@ def ftlk(publisher):
 
     for threadLink in links:
         if threadLink not in linkList:
-            print(len(threadLink.split('/')))
             if len(threadLink.split('/')) > 5:
                 linkList.append(threadLink)
                 pass
@@ -102,3 +100,6 @@ def pubsub(event, context):
     ftlk(publisher)
 
     pass
+
+
+pubsub(None, None)

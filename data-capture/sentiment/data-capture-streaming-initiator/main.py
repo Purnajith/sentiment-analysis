@@ -22,6 +22,8 @@ def pubMessage(publisher, text):
     topic='data-capture-text',  # Set this to something appropriate.
     )
 
+    print(text)
+
     #send message for pre processing
     publisher.publish(topic, data=text.encode("utf-8"))
 

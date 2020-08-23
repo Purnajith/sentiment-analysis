@@ -21,7 +21,9 @@ def getTweets(keyWord):
     return tweepy.Cursor(api.search, 
                                 q=keyWord, 
                                 geocode = geo,
-                                include_entities=True, tweet_mode='extended').items()
+                                include_entities=True,
+                                result_type = 'recent',
+                                tweet_mode='extended').items()
 
         
 def getUserInfo(user):
