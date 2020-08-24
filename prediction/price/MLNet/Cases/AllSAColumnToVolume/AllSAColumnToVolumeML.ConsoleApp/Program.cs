@@ -9,14 +9,63 @@ namespace AllSAColumnToVolumeML.ConsoleApp
     {
         static void Main(string[] args)
         {
+            string selection = String.Empty;
+            do
+            {
+                Console.WriteLine("=====================================");
+
+                Console.WriteLine("Please select");
+                Console.WriteLine("Build Model = 1");
+                Console.WriteLine("Predict = 2");
+                Console.WriteLine("Exit = -99");
+
+                selection = Console.ReadLine();
+
+                if (selection == "1")
+                {
+                    ModelBuilder.CreateModel();
+                }
+                else if (selection == "2")
+                {
+                    Console.WriteLine("Enter - CompanyID");
+                    string CompanyID = Console.ReadLine();
+
+                    Console.WriteLine("Enter - Magnitude");
+                    string Magnitude = Console.ReadLine();
+
+                    Console.WriteLine("Enter - Polarity");
+                    string Polarity = Console.ReadLine();
+
+                    Console.WriteLine("Enter - Score");
+                    string Score = Console.ReadLine();
+
+                    Console.WriteLine("Enter - Subjectivity");
+                    string Subjectivity = Console.ReadLine();
+
+                    DisplayPredict(Convert.ToInt32(CompanyID),
+                                    Convert.ToDouble(Magnitude),
+                                    Convert.ToDouble(Polarity),
+                                    Convert.ToDouble(Score),
+                                    Convert.ToDouble(Subjectivity));
+
+                }
+
+                Console.WriteLine("=====================================");
+            }
+            while (selection != "-99");
+        }
+
+
+        private static void DisplayPredict(int CompanyID, double Magnitude, double Polarity, double Score, double Subjectivity)
+        {
             // Create single instance of sample data from first line of dataset for model input
             ModelInput sampleData = new ModelInput()
             {
-                CompanyID = 172F,
-                Magnitude = 0.1F,
-                Polarity = 0.0565051F,
-                Score = -0.1F,
-                Subjectivity = 0.4186224F,
+                CompanyID = CompanyID,
+                Magnitude = (float)Magnitude,
+                Polarity = (float)Polarity,
+                Score = (float)Score,
+                Subjectivity = (float)Subjectivity,
             };
 
             // Make a single prediction on the sample data and print results
