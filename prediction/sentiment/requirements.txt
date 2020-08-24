@@ -2,4 +2,5 @@
 # package>=version
 firebase_admin
 google-cloud-firestore
-google-cloud-pubsub
+textblob
+pandas
