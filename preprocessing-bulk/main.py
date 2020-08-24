@@ -9,6 +9,10 @@ from nltk.stem import PorterStemmer
 import os
 from textblob import TextBlob
 
+# Imports the Google Cloud client library
+from google.cloud import language
+from google.cloud.language import enums
+from google.cloud.language import types
 
 
 #clear the given text using regex 
@@ -24,8 +28,8 @@ def tokenize(text):
     wordTokens = [nltk.word_tokenize(sentence) for sentence in sentences]
     return wordTokens
 
-def getDocumentWithData(db, collection, ID):
-    doc_ref = db.collection(collection).document(ID)
+def getDocumentWithData(db, ID):
+    doc_ref = db.collection(u'posts').document(ID)
 
     doc = doc_ref.get()
     if doc.exists:
@@ -94,16 +98,43 @@ def getSingleArray(arrayList):
         pass
     return  result
 
-def getTextBlobSentiment(text):
-    txtblb = TextBlob(text)
-    if txtblb:
-        return txtblb
-    else :
+def getSentiment(text):
+    result = []
+
+    # Instantiates a client
+    client = language.LanguageServiceClient()
+
+    # The text to analyze
+    document = types.Document(
+        content=text,
+        type=enums.Document.Type.PLAIN_TEXT)
+    
+    # Detects the sentiment of the text
+    sentiment = client.analyze_sentiment(document=document).document_sentiment
+
+    if sentiment:
+        return {
+            "score" : sentiment.score,
+            "magnitude" : sentiment.magnitude
+        }
+    else:
         return None
 
-def preprocessDocument(doc, db, count):
-    data = getDocumentWithData(db, 'posts', doc.id)
-    print(str(doc.id) + ' ' + str(data['dateTime'])+ ' ' + str(count))
+def getTextBlobSentiment(text):
+    result = []
+
+    txtblb = TextBlob(text)
+    if txtblb.sentiment.polarity > 0 or txtblb.sentiment.subjectivity > 0:
+        return {
+            "polarity" : txtblb.sentiment.polarity,
+            "subjectivity" : txtblb.sentiment.subjectivity,
+        }
+    else:
+        return None
+
+def preprocessDocument(postID, db):
+    data = getDocumentWithData(db, postID)
+    print(postID + ' ' + str(data['dateTime']))
 
     # check if has sinhala 
     textToProcess = getEnglishText(data['postTitle'])
@@ -126,21 +157,51 @@ def preprocessDocument(doc, db, count):
             # update to stem
             stemWordUpdate = [updateToStem(tokenList) for tokenList in stopWordsRemoved]
 
-            #get sentiment
-            textBlob = getTextBlobSentiment(textToProcess)
-
             # update document
-            db.collection(u'posts').document(doc.id).update({u'fullArray': getSingleArray(stopWordsRemoved)})
-            db.collection(u'posts').document(doc.id).update({u'finalArray': getSingleArray(stemWordUpdate)})
-            db.collection(u'posts').document(doc.id).update({u'preprocessed': True})
+            db.collection(u'posts').document(postID).update({u'fullArray': getSingleArray(stopWordsRemoved)})
+            db.collection(u'posts').document(postID).update({u'finalArray': getSingleArray(stemWordUpdate)})
             
-            if textBlob :
-                db.collection(u'posts').document(doc.id).update({u'polarity': textBlob.sentiment.polarity})
-                db.collection(u'posts').document(doc.id).update({u'subjectivity': textBlob.sentiment.subjectivity})
+            sentiment = None
+            gsentiment = None
+            tsentiment = None
+
+            try:
+                gsentiment = getSentiment(textToProcess)
+            except Exception as err:
+                print(f'Error occurred: {err}')
+                pass
+
+            try:
+                tsentiment = getTextBlobSentiment(textToProcess)
+            except Exception as err:
+                print(f'Error occurred: {err}')
+                pass
+
+            if gsentiment and tsentiment:
+                sentiment  = {
+                    "score" : gsentiment['score'],
+                    "magnitude" : gsentiment['magnitude'],
+                    "polarity" : tsentiment['polarity'],
+                    "subjectivity" : tsentiment['subjectivity'],
+                }
+            elif gsentiment:
+                sentiment  = {
+                    "score" : gsentiment['score'],
+                    "magnitude" : gsentiment['magnitude']
+                }
+            elif tsentiment:
+                sentiment  = {
+                    "polarity" : tsentiment['polarity'],
+                    "subjectivity" : tsentiment['subjectivity'],
+                }
+
+            if sentiment :
+                db.collection(u'posts').document(postID).update({u'sentiment': sentiment})
+                db.collection(u'posts').document(postID).update({u'preprocessed': True})
             pass
         pass
     pass
-    pass
+
 
 # select single record
 # check if has sinhala 
@@ -174,10 +235,14 @@ def pubsub(event, context):
     try:
         count = 1
         for doc in collection:
-            preprocessDocument(doc, db, count)
+            preprocessDocument(doc.id, db)
+            print(count)
             count = count + 1
         pass
     except Exception as err:
         print(f'Error occurred: {err}')
         pass
     pass
+
+
+pubsub(None,None)

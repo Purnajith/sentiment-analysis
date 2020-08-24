@@ -4,3 +4,5 @@ firebase_admin
 google-cloud-firestore
 nltk
 google-cloud-translate
+google-cloud-language
+textblob
