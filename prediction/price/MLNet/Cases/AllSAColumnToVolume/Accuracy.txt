@@ -1,0 +1,68 @@
+Code Generated
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|1    SdcaRegression                       -6.5440       8959.90 181844797.98 12313.76       0.6          1      |
+|2    LightGbmRegression                   -3.7084       9654.13 200607800.63 13104.49       0.5          2      |
+|3    FastTreeRegression                   -2.2472       8863.90 173546738.48 11996.66       0.8          3      |
+|4    FastTreeTweedieRegression            -1.0907       8241.29 197017297.33 12383.56       0.9          4      |
+|5    FastForestRegression                 -3.9601       8330.26 168370640.98 11718.81       0.9          5      |
+|6    LbfgsPoissonRegression               -3.2626       9098.58 193900717.26 12574.15       0.4          6      |
+|7    OnlineGradientDescentRegression      -5.6431       9533.41 190842344.54 12709.09       0.4          7      |
+|8    OlsRegression                        -5.9403       9095.24 184721472.46 12429.06       0.4          8      |
+|9    FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.7          9      |
+|10   FastTreeTweedieRegression            -0.6369       7712.83 181412564.99 11776.38       0.8         10      |
+|11   LbfgsPoissonRegression               -3.2329       9094.05 193921811.61 12574.12       0.4         11      |
+|12   FastTreeRegression                   -0.4611       8218.43 243122272.33 13792.64       0.7         12      |
+|13   FastTreeTweedieRegression            -0.1146       6723.21 150443794.37 10221.83       0.8         13      |
+|14   LbfgsPoissonRegression               -3.2630       9099.95 193979285.01 12577.77       0.5         14      |
+|15   FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.6         15      |
+|16   FastTreeTweedieRegression            -0.4499       8158.74 245379125.43 13902.12       3.3         16      |
+|17   LbfgsPoissonRegression               -3.2565       9097.90 193887333.11 12573.01       0.6         17      |
+|18   FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.6         18      |
+|19   FastTreeTweedieRegression            -1.0682       9660.55 300826475.02 15691.62       0.9         19      |
+|20   LbfgsPoissonRegression               -3.2641       9099.90 193780393.19 12572.53       0.4         20      |
+|21   FastTreeRegression                   -0.5546       8460.85 255876760.30 14226.62       0.7         21      |
+|22   FastTreeTweedieRegression            -0.5499       7385.89 192198126.51 11898.46       0.8         22      |
+|23   LbfgsPoissonRegression               -3.2238       9094.38 193825098.53 12569.25       0.5         23      |
+|24   FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.7         24      |
+|25   FastTreeTweedieRegression            -1.0752       9674.53 301159818.59 15702.38       0.7         25      |
+|26   LbfgsPoissonRegression               -3.2596       9100.52 193916332.32 12574.57       0.5         26      |
+|27   FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.7         27      |
+|28   FastTreeTweedieRegression            -0.5687       6801.00 135491491.40  9946.17       0.7         28      |
+|29   LbfgsPoissonRegression               -3.2620       9098.31 193895637.01 12573.58       0.4         29      |
+|30   FastTreeRegression                   -0.7034       7447.69 189071843.73 11971.29       0.9         30      |
+|31   FastTreeTweedieRegression            -0.1916       7413.51 202218790.03 12314.67       0.8         31      |
+|32   LbfgsPoissonRegression               -3.2614       9098.38 193903740.75 12574.07       0.4         32      |
+|33   FastTreeRegression                   -1.3220       8312.46 219285789.41 12906.88       2.1         33      |
+|34   FastTreeTweedieRegression             0.1436       6652.66 164685073.48 10722.53       1.5         34      |
+|35   LbfgsPoissonRegression               -3.2731       9095.99 193763348.88 12569.56       0.5         35      |
+|36   FastTreeRegression                   -1.0757       9675.53 301179168.66 15703.03       0.9         36      |
+|37   FastTreeTweedieRegression            -0.8585       9172.33 286347547.00 15231.21       1.0         37      |
+|38   LbfgsPoissonRegression               -3.2475       9100.93 194312267.35 12581.42       0.5         38      |
+|39   FastTreeRegression                   -1.6764       7388.99 151314696.75 10565.59       1.3         39      |
+|40   FastTreeTweedieRegression            -2.1102       8147.43 209380146.79 12755.65       3.6         40      |
+|41   LbfgsPoissonRegression               -3.2630       9098.19 193865951.55 12573.27       0.7         41      |
+|42   FastTreeRegression                   -7.0061       9725.98 191223804.73 12926.46       1.5         42      |
+|43   FastTreeTweedieRegression            -0.4513       8150.54 245195691.59 13894.34      11.8         43      |
+|44   LbfgsPoissonRegression               -3.2628       9098.75 193910105.38 12574.69       0.5         44      |
+|45   FastTreeRegression                   -2.6664       8300.42 175850587.48 11908.77       2.2         45      |
+
+===============================================Experiment Results=================================================
+------------------------------------------------------------------------------------------------------------------
+|                                                     Summary                                                    |
+------------------------------------------------------------------------------------------------------------------
+|ML Task: regression                                                                                             |
+|Dataset: C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\arrangedData.csv             |
+|Label : volume                                                                                                  |
+|Total experiment time : 51.0331134 Secs                                                                         |
+|Total number of models explored: 45                                                                             |
+------------------------------------------------------------------------------------------------------------------
+
+|                                              Top 5 models explored                                             |
+------------------------------------------------------------------------------------------------------------------
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|1    FastTreeTweedieRegression             0.1436       6652.66 164685073.48 10722.53       1.5          1      |
+|2    FastTreeTweedieRegression            -0.1146       6723.21 150443794.37 10221.83       0.8          2      |
+|3    FastTreeTweedieRegression            -0.1916       7413.51 202218790.03 12314.67       0.8          3      |
+|4    FastTreeTweedieRegression            -0.4499       8158.74 245379125.43 13902.12       3.3          4      |
+|5    FastTreeTweedieRegression            -0.4513       8150.54 245195691.59 13894.34      11.8          5      |
+------------------------------------------------------------------------------------------------------------------
