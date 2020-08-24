@@ -11,6 +11,10 @@ def extractContent(URL, container):
     results = soup.find_all('div', class_ = container)
     return results
 
+def extractContentFull(URL):
+    page = requests.get(URL)
+    return BeautifulSoup(page.content, 'html.parser')
+
 def extractLinks(content, format, partition, extractContentNo):
     result = []
     for target_list in content:
@@ -52,6 +56,8 @@ def slEquityForum(publisher):
         link = URL + threadLink
         pushMessage(publisher, 'data-capture-sl-equity-forum-links', link)
         pass
+
+
     pass
 
 
@@ -72,14 +78,43 @@ def ftlk(publisher):
             if len(threadLink.split('/')) > 5:
                 linkList.append(threadLink)
                 pass
-            
-    pass
+            pass
+        pass
 
 
 
     for link in linkList:
         #send message to topic with link     
         pushMessage(publisher, 'data-capture-ft-links', link)
+        pass
+
+    pass
+
+
+
+def lbo(publisher):
+    URL = "https://www.lankabusinessonline.com/"
+
+    soup = extractContentFull(URL)
+
+    content = soup.find_all('ul', class_ = 'post-list')
+
+    links = extractLinks(content, {"href" : lambda L: L and L.startswith('https://www.lankabusinessonline.com/')}, "#", 0)
+
+    linkList = []
+
+    for threadLink in links:
+        if threadLink not in linkList:
+            linkList.append(threadLink)
+            pass
+        pass
+    pass
+
+
+
+    for link in linkList:
+        #send message to topic with link     
+        pushMessage(publisher, 'data-capture-lbo-links', link)
         pass
     pass
 
@@ -99,7 +134,6 @@ def pubsub(event, context):
 
     ftlk(publisher)
 
+    lbo(publisher)
+
     pass
-
-
-pubsub(None, None)
