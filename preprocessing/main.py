@@ -7,6 +7,12 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import os
+from textblob import TextBlob
+
+# Imports the Google Cloud client library
+from google.cloud import language
+from google.cloud.language import enums
+from google.cloud.language import types
 
 
 #clear the given text using regex 
@@ -92,6 +98,40 @@ def getSingleArray(arrayList):
         pass
     return  result
 
+def getSentiment(text):
+    result = []
+
+    # Instantiates a client
+    client = language.LanguageServiceClient()
+
+    # The text to analyze
+    document = types.Document(
+        content=text,
+        type=enums.Document.Type.PLAIN_TEXT)
+    
+    # Detects the sentiment of the text
+    sentiment = client.analyze_sentiment(document=document).document_sentiment
+
+    if sentiment:
+        return {
+            "score" : sentiment.score,
+            "magnitude" : sentiment.magnitude
+        }
+    else:
+        return None
+
+def getTextBlobSentiment(text):
+    result = []
+
+    txtblb = TextBlob(text)
+    if txtblb.sentiment.polarity > 0 or txtblb.sentiment.subjectivity > 0:
+        return {
+            "polarity" : txtblb.sentiment.polarity,
+            "subjectivity" : txtblb.sentiment.subjectivity,
+        }
+    else:
+        return None
+
 def preprocessDocument(postID, db):
     data = getDocumentWithData(db, postID)
     print(postID + ' ' + str(data['dateTime']))
@@ -120,7 +160,44 @@ def preprocessDocument(postID, db):
             # update document
             db.collection(u'posts').document(postID).update({u'fullArray': getSingleArray(stopWordsRemoved)})
             db.collection(u'posts').document(postID).update({u'finalArray': getSingleArray(stemWordUpdate)})
-            db.collection(u'posts').document(postID).update({u'preprocessed': True})
+            
+            sentiment = None
+            gsentiment = None
+            tsentiment = None
+
+            try:
+                gsentiment = getSentiment(textToProcess)
+            except Exception as err:
+                print(f'Error occurred: {err}')
+                pass
+
+            try:
+                tsentiment = getTextBlobSentiment(textToProcess)
+            except Exception as err:
+                print(f'Error occurred: {err}')
+                pass
+
+            if gsentiment and tsentiment:
+                sentiment  = {
+                    "score" : gsentiment['score'],
+                    "magnitude" : gsentiment['magnitude'],
+                    "polarity" : tsentiment['polarity'],
+                    "subjectivity" : tsentiment['subjectivity'],
+                }
+            elif gsentiment:
+                sentiment  = {
+                    "score" : gsentiment['score'],
+                    "magnitude" : gsentiment['magnitude']
+                }
+            elif tsentiment:
+                sentiment  = {
+                    "polarity" : tsentiment['polarity'],
+                    "subjectivity" : tsentiment['subjectivity'],
+                }
+
+            if sentiment :
+                db.collection(u'posts').document(postID).update({u'sentiment': sentiment})
+                db.collection(u'posts').document(postID).update({u'preprocessed': True})
             pass
         pass
     pass
