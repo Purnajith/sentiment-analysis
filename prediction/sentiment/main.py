@@ -3,13 +3,7 @@ from firebase_admin import firestore
 from datetime import datetime, timedelta
 import time
 import base64
-
-# Imports the Google Cloud client library
-from google.cloud import language
-from google.cloud.language import enums
-from google.cloud.language import types
-
-import pandas as pd
+import pandas as pd 
 
 def average(lst): 
     return sum(lst) / len(lst) 
@@ -30,10 +24,9 @@ def getDocumentWithData(db, collection, ID):
         print(u'No such document : ' + ID)
         return None
 
-def getContentSeparationList():
+def getContentSeparationList(startDate):
     result = []
 
-    startDate =  datetime(year=2020, month = 7,day = 1, hour=0, minute=0, second=0)
     endDate = startDate + timedelta(days=1)
     
     while endDate <= datetime.now()+ timedelta(days=1):
@@ -163,10 +156,10 @@ def getCSEData(db, companyID, starttime, endTime):
         return None
 
 
-def setData(db, companyDoc):
+def setData(db, companyDoc, dateTimeStart):
 
     # create separation list
-    separationList = getContentSeparationList()
+    separationList = getContentSeparationList(dateTimeStart)
 
     #get unique Key  words list for company
     companyKeyWords = getCompanyUniqueKeyWordList(companyDoc['keywords'])
@@ -283,12 +276,35 @@ def pubsub(event, context):
     #companyID = "swCENHeDqunTXOdHmES1" #EAST.N0000
     #companyID = "wEILA31LJGLXgHAuF3IM" #SAMP.N0000
     #companyID = "xuSaRuYgfHHLSD8og59x" #COMB.N0000
-    companyID = "yQsjbu0Jsa60TydcK2j3" #AEL.N0000
+    #companyID = "yQsjbu0Jsa60TydcK2j3" #AEL.N0000
 
-    doc = getDocumentWithData(db, 'company', companyID)
-        
-    if doc :
-        setData(db, doc)
+
+    
+    companyCollection = db.collection(u'company').stream()
+
+
+    for companyDoc in companyCollection:
+        doc = getDocumentWithData(db, 'company', companyDoc.id)    
+        if doc:
+            arrancgedDataCollection = db.collection(u'arrangedData').where(u"companyID", u'==', doc['id']).order_by(u'cseEndTime', direction= firestore.Query.DESCENDING).limit(1).stream()
+            startDateTime = datetime.fromtimestamp(1593541800)
+
+            for arrangedData in arrancgedDataCollection:
+                if arrangedData:
+                    data = getDocumentWithData(db, 'arrangedData', arrangedData.id)
+                    startDateTime = datetime.fromtimestamp(data['cseEndTime'])
+                    #setData(db, doc)
+                    pass
+                else :
+                    # only pick records after 2020 07 01 00:00:00
+                    startDateTime = datetime.fromtimestamp(1593541800)
+                    pass
+                pass
+                
+                print(str(doc['id']) + "-" + str(startDateTime))
+                setData(db, doc, startDateTime)
+                pass
+        pass
     pass
 
 
