@@ -1,8 +1,8 @@
 ﻿using Microsoft.ML.Data;
 
-namespace CustomeModel.Data.ScoreMagnitudeVolume
+namespace CustomeModel.Data
 {
-    class ModelInput
+    class ScoreMagnitudeLow
     {
         [ColumnName("companyID"), LoadColumn(0)]
         public float CompanyID { get; set; }
@@ -16,7 +16,7 @@ namespace CustomeModel.Data.ScoreMagnitudeVolume
         public float Score { get; set; }
 
 
-        [ColumnName("volume"), LoadColumn(15)]
-        public float Volume { get; set; }
+        [ColumnName("low"), LoadColumn(6)]
+        public float Low { get; set; }
     }
 }
