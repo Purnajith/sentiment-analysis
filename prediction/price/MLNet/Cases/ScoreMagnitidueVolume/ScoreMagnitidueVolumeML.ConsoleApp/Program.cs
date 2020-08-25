@@ -15,36 +15,70 @@ namespace ScoreMagnitidueVolumeML.ConsoleApp
                 Console.WriteLine("=====================================");
 
                 Console.WriteLine("Please select");
-                Console.WriteLine("Build Model = 1");
-                Console.WriteLine("Predict = 2");
+                Console.WriteLine("Build = 1");
+                Console.WriteLine("Build and Predict = 2");
+                Console.WriteLine("Predict = 3");
                 Console.WriteLine("Exit = -99");
 
                 selection = Console.ReadLine();
 
-                if (selection == "1")
+                if (selection == "1") 
                 {
-                    ModelBuilder.CreateModel();
+                    Build();
                 }
                 else if (selection == "2")
                 {
-                    Console.WriteLine("Enter - CompanyID");
-                    string CompanyID = Console.ReadLine();
-
-                    Console.WriteLine("Enter - Magnitude");
-                    string Magnitude = Console.ReadLine();
-
-                    Console.WriteLine("Enter - Score");
-                    string Score = Console.ReadLine();
-
-                    DisplayPredict(Convert.ToInt32(CompanyID),
-                                    Convert.ToDouble(Magnitude),
-                                    Convert.ToDouble(Score));
-
+                    BuildAndPredict();
                 }
+
+                else if (selection == "3")
+                {
+                    PredictOnly();
+                }
+
 
                 Console.WriteLine("=====================================");
             }
             while (selection != "-99");
+        }
+
+        private static void Build()
+        {
+            ModelBuilder.CreateModel(null);
+        }
+
+        private static void BuildAndPredict()
+        {
+            Console.WriteLine("Enter - CompanyID");
+            string CompanyID = Console.ReadLine();
+
+            Console.WriteLine("Enter - Magnitude");
+            string Magnitude = Console.ReadLine();
+
+            Console.WriteLine("Enter - Score");
+            string Score = Console.ReadLine();
+
+            ModelBuilder.CreateModel(int.Parse(CompanyID));
+
+            DisplayPredict(Convert.ToInt32(CompanyID),
+                            Convert.ToDouble(Magnitude),
+                            Convert.ToDouble(Score));
+        }
+
+        private static void PredictOnly()
+        {
+            Console.WriteLine("Enter - CompanyID");
+            string CompanyID = Console.ReadLine();
+
+            Console.WriteLine("Enter - Magnitude");
+            string Magnitude = Console.ReadLine();
+
+            Console.WriteLine("Enter - Score");
+            string Score = Console.ReadLine();
+
+            DisplayPredict(Convert.ToInt32(CompanyID),
+                            Convert.ToDouble(Magnitude),
+                            Convert.ToDouble(Score));
         }
 
 

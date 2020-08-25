@@ -14,17 +14,18 @@ namespace ScoreMagnitidueVolumeML.ConsoleApp
     public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\arrangedData.csv";
+        private static string TRAIN_DATA_FILEPATHFormat = @"C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\arrangedData-{0}.csv";
         private static string MODEL_FILE = ConsumeModel.MLNetModelPath;
 
         // Create MLContext to be shared across the model creation workflow objects 
         // Set a random seed for repeatable/deterministic results across multiple trainings.
         private static MLContext mlContext = new MLContext(seed: 1);
 
-        public static void CreateModel()
+        public static void CreateModel(int? companyID)
         {
             // Load Data
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
-                                            path: TRAIN_DATA_FILEPATH,
+                                            path: companyID.HasValue ? string.Format(TRAIN_DATA_FILEPATHFormat, companyID) : TRAIN_DATA_FILEPATH,
                                             hasHeader: true,
                                             separatorChar: ',',
                                             allowQuoting: true,
