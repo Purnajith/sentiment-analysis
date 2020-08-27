@@ -27,13 +27,13 @@ def getDocumentWithData(db, collection, ID):
 def getContentSeparationList(startDate):
     result = []
 
-    endDate = startDate + timedelta(days=1)
-    
-    while endDate <= datetime.now()+ timedelta(days=1):
+    endDate = startDate + timedelta(hours=24)
+
+    while endDate <= datetime.now()+ timedelta(hours=24):
         rangeData = [convertToUnixEpoc(startDate), convertToUnixEpoc(endDate)]
         result.append(rangeData)
-        startDate += timedelta(days=1)
-        endDate += timedelta(days=1)
+        startDate += timedelta(hours=24)
+        endDate += timedelta(hours=24)
         pass
 
     return result
@@ -129,7 +129,8 @@ def getPostSentimentByPeriod(db, startDate, endDate, keyWordList):
     else :
         return None
 
-    
+def convertToDateTimeObject(timeStamp):
+    return datetime.fromtimestamp(timeStamp)
 
 def getCSEData(db, companyID, starttime, endTime):
     high=[]
@@ -195,12 +196,16 @@ def setData(db, companyDoc, dateTimeStart):
             if cseData :
                 data = {
                     'companyID' : int(companyDoc['id']),
-                    'postStartRangeFull' : time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(postStartTime)),
-                    'postEndRangeFull' : time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(postEndTime)),
+                    'postStartRangeDate' : time.strftime('%Y-%m-%d', time.localtime(postStartTime)),
+                    'postStartRangeFull' : convertToDateTimeObject(postStartTime),
+                    'postEndRangeDate' : time.strftime('%Y-%m-%d', time.localtime(postEndTime)),
+                    'postEndRangeFull' : convertToDateTimeObject(postEndTime),
                     'postStartRange' : postStartTime,
                     'postEndRange' : postEndTime,
-                    'cseStartTimeFull' : time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cseStartTime)),
-                    'cseEndTimeFull' : time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cseEndTime)),
+                    'cseStartTimeFull' : convertToDateTimeObject(cseStartTime),
+                    'cseEndTimeFull' : convertToDateTimeObject(cseEndTime),
+                    'cseStartTimeDate' : time.strftime('%Y-%m-%d', time.localtime(cseStartTime)),
+                    'cseEndTimeDate' : time.strftime('%Y-%m-%d', time.localtime(cseEndTime)),
                     'cseStartTime' : cseStartTime,
                     'cseEndTime' : cseEndTime,
                     'score' : sentiment['score'],
@@ -210,15 +215,16 @@ def setData(db, companyDoc, dateTimeStart):
                     'high' : cseData['high'],
                     'low' : cseData['low'],
                     'volume' : cseData['volume'],
+                    'code' : companyDoc['code']
                 }
 
                 key_format= str(int(companyDoc['id'])) + "-"+ str(int(cseStartTime)) + "-"+ str(int(cseEndTime))
                 db.collection(u'arrangedData').document(key_format).set(data)
 
-                poststartDateList.append(data['postStartRangeFull'])
-                postendDateList.append(data['postEndRangeFull'])
-                csestartDateList.append(data['cseStartTimeFull'])
-                cseendDateList.append(data['cseEndTimeFull'])
+                poststartDateList.append(data['postStartRangeDate'])
+                postendDateList.append(data['postEndRangeDate'])
+                csestartDateList.append(data['cseStartTime'])
+                cseendDateList.append(data['cseEndTime'])
                 score.append(data['score'])
                 magnitude.append(data['magnitude'])
                 polarity.append(data['polarity'])
@@ -267,44 +273,53 @@ def pubsub(event, context):
     # get all current records 
     db = firebase_admin.firestore.client()
 
-    #companyID = "G5cafrM2KPEVsJUag7dD" #JKH
-    #companyID = "ZFILlRgLyOWt6d7RAFrd" #EXPO.N0000
-    #companyID = "gg3etvh7C90E8vAMYDCk" #HNB.N0000
-    #companyID = "iR01TsoyYnDwUwKXQSrG" #DIAL.N0000
-    #companyID = "k8xL8W10kmm1Q6ZcN8jb" #VONE.N0000
-    #companyID = "sTxEDZibOUZayDWcdJiv" #BIL.N0000
-    #companyID = "swCENHeDqunTXOdHmES1" #EAST.N0000
-    #companyID = "wEILA31LJGLXgHAuF3IM" #SAMP.N0000
-    #companyID = "xuSaRuYgfHHLSD8og59x" #COMB.N0000
-    #companyID = "yQsjbu0Jsa60TydcK2j3" #AEL.N0000
+    #companyID = "G5cafrM2KPEVsJUag7dD" #JKH 297 2020-08-12
+    #companyID = "ZFILlRgLyOWt6d7RAFrd" #EXPO.N0000 1803 2020-2020-8-14
+    #companyID = "gg3etvh7C90E8vAMYDCk" #HNB.N0000 172 2020-7-24
+    #companyID = "iR01TsoyYnDwUwKXQSrG" #DIAL.N0000 471 2020-7-29
+    #companyID = "k8xL8W10kmm1Q6ZcN8jb" #VONE.N0000 1848 2020-8-7
+    #companyID = "sTxEDZibOUZayDWcdJiv" #BIL.N0000  1851 2020-8-14
+    #companyID = "swCENHeDqunTXOdHmES1" #EAST.N0000 403 2020-8-7
+    #companyID = "wEILA31LJGLXgHAuF3IM" #SAMP.N0000 266 2020-7-26
+    #companyID = "xuSaRuYgfHHLSD8og59x" #COMB.N0000 208 2020-7-26
+    #companyID = "yQsjbu0Jsa60TydcK2j3" #AEL.N0000 2065 2020-8-7
+
+    #date_time_str = '2020-8-7'
+    #startDateTime = datetime.strptime(date_time_str, '%Y-%m-%d')
+
+    #print(startDateTime)
+    #doc = getDocumentWithData(db, 'company', companyID)    
+    #print(str(doc['id']) + "-" + str(startDateTime))
+    #setData(db, doc, startDateTime)
 
 
-    
-    companyCollection = db.collection(u'company').stream()
+    companyCollection = db.collection(u'company').get()
 
 
     for companyDoc in companyCollection:
         doc = getDocumentWithData(db, 'company', companyDoc.id)    
         if doc:
             arrancgedDataCollection = db.collection(u'arrangedData').where(u"companyID", u'==', doc['id']).order_by(u'cseEndTime', direction= firestore.Query.DESCENDING).limit(1).stream()
-            startDateTime = datetime.fromtimestamp(1593541800)
+            date_time_str = '2020-07-23'
+            startDateTime = datetime.strptime(date_time_str, '%Y-%m-%d')
+
+            print(str(doc['id']) + "-" + str(startDateTime))
+            setData(db, doc, startDateTime)
 
             for arrangedData in arrancgedDataCollection:
                 if arrangedData:
                     data = getDocumentWithData(db, 'arrangedData', arrangedData.id)
-                    startDateTime = datetime.fromtimestamp(data['cseEndTime'])
-                    #setData(db, doc)
-                    pass
-                else :
-                    # only pick records after 2020 07 01 00:00:00
-                    startDateTime = datetime.fromtimestamp(1593541800)
+
+                    if data:
+                        startDateTime = datetime.strptime(data['cseEndTimeDate'], '%Y-%m-%d') 
                     pass
                 pass
-                
-                print(str(doc['id']) + "-" + str(startDateTime))
-                setData(db, doc, startDateTime)
+
+                #print(str(doc['id']) + "-" + str(startDateTime))
+                #setData(db, doc, startDateTime)
                 pass
         pass
+
     pass
 
 

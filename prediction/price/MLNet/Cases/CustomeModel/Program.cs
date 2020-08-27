@@ -10,35 +10,44 @@ namespace CustomeModel
     class Program
     {
 
-        static readonly string basePath = @"C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\";
-        static readonly string casePath = @"MLNet\Cases\CustomeModel\Data\ScoreMagnitudeVolume";
+        static readonly string basePath = @"C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\data2\";
 
-        static readonly string _trainDataPath = Path.Combine(basePath, "arrangedData-train.csv");
-        static readonly string _testDataPath = Path.Combine(basePath, "arrangedData-test.csv");
-        static readonly string _modelPath = Path.Combine(basePath, casePath, "Model.zip");
+        static readonly string _trainDataPathFormat = Path.Combine(basePath, "arrangedData-train.csv");
+        static readonly string _testDataPathFormat = Path.Combine(basePath, "arrangedData-test.csv");
+        static readonly string _validateDataPathFormat = Path.Combine(basePath, "arrangedData-validate.csv");
 
         /*https://docs.microsoft.com/en-us/dotnet/machine-learning/tutorials/predict-prices*/
         static void Main(string[] args)
         {
             MLContext mlContextVolume = new MLContext(seed: 0);
-            //MLContext mlContextHigh = new MLContext(seed: 0);
-            //MLContext mlContextLow = new MLContext(seed: 0);
-            var modelVolume = TrainVolume(mlContextVolume, _trainDataPath);
-            //var modelHigh = TrainHigh(mlContextHigh, _trainDataPath);
-            ///var modelLow = TrainLow(mlContextLow, _trainDataPath);
 
-            Evaluate<ScoreMagnitudeVolume>(mlContextVolume, modelVolume);
-            //Evaluate<ScoreMagnitudeHigh>(mlContextHigh, modelHigh);
-            //Evaluate<ScoreMagnitudeLow>(mlContextLow, modelLow);
+            var modelVolume = TrainVolume(mlContextVolume, _trainDataPathFormat);
+            Evaluate<ScoreMagnitudeVolume>(mlContextVolume, modelVolume, _validateDataPathFormat);
 
-            //TestSinglePrediction(mlContextVolume,
-            //                        //mlContextHigh,
-            //                        //mlContextLow,
-            //                        modelVolume,
-            //                        //modelHigh,
-            //                        //modelLow);
-            TestSinglePrediction(mlContextVolume,
-                                    modelVolume);
+            string selection = String.Empty;
+            do
+            {
+                Console.WriteLine("Select From Options Below");
+                Console.WriteLine("Use Validation Data Set = 1");
+                Console.WriteLine("Enter Data = 2");
+                Console.WriteLine("Exit = -99");
+                selection = Console.ReadLine();
+
+                if (selection == "1")
+                {
+                    TestValaidateDatePrediction(mlContextVolume,
+                                                    modelVolume,
+                                                    _testDataPathFormat);
+                }
+                else if (selection == "2") 
+                {
+                    TestSinglePrediction(mlContextVolume, modelVolume);
+                }
+
+                Console.WriteLine("");
+                Console.WriteLine("");
+                Console.WriteLine("=============================================================");
+            } while (selection != "-99");
         }
 
         public static ITransformer TrainVolume(MLContext mlContext, string dataPath)
@@ -46,20 +55,21 @@ namespace CustomeModel
             IDataView dataView = mlContext.Data.LoadFromTextFile<ScoreMagnitudeVolume>(dataPath, hasHeader: true, separatorChar: ',');
 
             // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "polarity", "score", "subjectivity" });
             var pipeline = mlContext.Transforms.CopyColumns(outputColumnName: "Label", inputColumnName: "volume")
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "score" })
                 .Append(mlContext.Regression.Trainers.FastTreeTweedie(new FastTreeTweedieTrainer.Options() { NumberOfLeaves = 17, MinimumExampleCountPerLeaf = 1, NumberOfTrees = 100, LearningRate = 0.3504487f, Shrinkage = 0.09932277f, LabelColumnName = "volume", FeatureColumnName = "Features" })));
+                //.Append(mlContext.Regression.Trainers.FastForest(numberOfLeaves: 6, minimumExampleCountPerLeaf: 1, numberOfTrees: 500, labelColumnName: "volume", featureColumnName: "Features")));
+
 
             var model = pipeline.Fit(dataView);
 
             return model;
         }
 
-        private static void Evaluate<T>(MLContext mlContext, ITransformer model)
+        private static void Evaluate<T>(MLContext mlContext, ITransformer model, string dataPath)
         {
             
-            IDataView dataView = mlContext.Data.LoadFromTextFile<T>(_testDataPath, hasHeader: true, separatorChar: ',');
+            IDataView dataView = mlContext.Data.LoadFromTextFile<T>(dataPath, hasHeader: true, separatorChar: ',');
 
             var predictions = model.Transform(dataView);
 
@@ -69,89 +79,21 @@ namespace CustomeModel
             Console.WriteLine($"*************************************************");
             Console.WriteLine($"*       Model quality metrics evaluation         ");
             Console.WriteLine($"*------------------------------------------------");
-
             Console.WriteLine($"*       RSquared Score:      {metrics.RSquared:0.##}");
-
             Console.WriteLine($"*       Root Mean Squared Error:      {metrics.RootMeanSquaredError:#.##}");
-        }
-
-        private static void TestSinglePrediction(MLContext mlContextVolume,
-                                                   MLContext mlContextHigh,
-                                                   MLContext mlContextLow,
-                                                   ITransformer modelVolume, 
-                                                   ITransformer modelHigh, 
-                                                   ITransformer modelLow)
-        {
-            
-            var predictionFunctionVolume = mlContextVolume.Model.CreatePredictionEngine<ScoreMagnitudeVolume, ModelOutput>(modelVolume);
-            var predictionFunctionHigh = mlContextHigh.Model.CreatePredictionEngine<ScoreMagnitudeHigh, ModelOutput>(modelHigh);
-            var predictionFunctionLow = mlContextLow.Model.CreatePredictionEngine<ScoreMagnitudeLow, ModelOutput>(modelLow);
-
-
-            int companyID = -1;
-            float score = 0;
-            float magnitiude = 0;
-
-            Console.WriteLine("CompanyID:");
-            companyID = int.Parse(Console.ReadLine());
-
-            Console.WriteLine("Score:");
-            score = float.Parse(Console.ReadLine());
-
-            Console.WriteLine("Magnitiude:");
-            magnitiude = float.Parse(Console.ReadLine());
-
-            // Create single instance of sample data from first line of dataset for model input
-            ScoreMagnitudeVolume sampleDataVolume = new ScoreMagnitudeVolume()
-            {
-                CompanyID = companyID,
-                Magnitude = magnitiude,
-                Score = score,
-            };
-
-            ScoreMagnitudeHigh sampleDataHigh = new ScoreMagnitudeHigh()
-            {
-                CompanyID = companyID,
-                Magnitude = magnitiude,
-                Score = score,
-            };
-
-            ScoreMagnitudeLow sampleDataLow = new ScoreMagnitudeLow()
-            {
-                CompanyID = companyID,
-                Magnitude = magnitiude,
-                Score = score,
-            };
-
-            // Make a single prediction on the sample data and print results
-            var predictionResultVolume = predictionFunctionVolume.Predict(sampleDataVolume);
-            var predictionResultHigh = predictionFunctionHigh.Predict(sampleDataHigh);
-            var predictionResultLow = predictionFunctionLow.Predict(sampleDataLow);
-
-            Console.WriteLine("Using model to make single prediction -- Comparing actual with predicted from sample data...\n\n");
-            Console.WriteLine($"CompanyID: {sampleDataVolume.CompanyID}");
-            Console.WriteLine($"Magnitude: {sampleDataVolume.Magnitude}");
-            Console.WriteLine($"Score: {sampleDataVolume.Score}");
-            Console.WriteLine($"\n\nPredicted Volume: {predictionResultVolume.Score}\n\n");
-            Console.WriteLine($"\n\nPredicted High: {predictionResultHigh.Score}\n\n");
-            Console.WriteLine($"\n\nPredicted Low: {predictionResultLow.Score}\n\n");
-            Console.WriteLine("=============== End of process, hit any key to finish ===============");
-            Console.ReadKey();
         }
 
         private static void TestSinglePrediction(MLContext mlContextVolume,
                                                    ITransformer modelVolume)
         {
-
             var predictionFunctionVolume = mlContextVolume.Model.CreatePredictionEngine<ScoreMagnitudeVolume, ModelOutput>(modelVolume);
-           
 
-            int companyID = -1;
+            float companyID = 0;
             float score = 0;
             float magnitiude = 0;
 
-            Console.WriteLine("CompanyID:");
-            companyID = int.Parse(Console.ReadLine());
+            Console.WriteLine("companyID:");
+            companyID = float.Parse(Console.ReadLine());
 
             Console.WriteLine("Score:");
             score = float.Parse(Console.ReadLine());
@@ -159,54 +101,67 @@ namespace CustomeModel
             Console.WriteLine("Magnitiude:");
             magnitiude = float.Parse(Console.ReadLine());
 
+            Console.WriteLine("Using model to make single prediction -- Comparing actual with predicted from sample data...\n\n");
+            Console.WriteLine("CompanyID | Magnitude |  Score | Predicted Volume | Actual Volume");
+
+            PredictVolume(predictionFunctionVolume,
+                                    companyID,
+                                    score,
+                                    magnitiude);
+        }
+
+        private static void TestValaidateDatePrediction(MLContext mlContextVolume,
+                                                   ITransformer modelVolume, 
+                                                   string dataPath)
+        {
+            var predictionFunctionVolume = mlContextVolume.Model.CreatePredictionEngine<ScoreMagnitudeVolume, ModelOutput>(modelVolume);
+
+            Console.WriteLine("Using model to make single prediction -- Comparing actual with predicted from sample data...\n\n");
+            Console.WriteLine("CompanyID | Magnitude |  Score | Predicted Volume | Actual Volume");
+
+            using (var reader = new StreamReader(dataPath))
+            {
+                int count = 0;
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    var values = line.Split(',');
+
+                    if (count != 0) 
+                    {
+                        PredictVolume(predictionFunctionVolume,
+                                        !String.IsNullOrEmpty(values[1]) ? float.Parse(values[1]) : 0F,
+                                        !String.IsNullOrEmpty(values[10]) ? float.Parse(values[10]) : 0F,
+                                        !String.IsNullOrEmpty(values[18]) ? float.Parse(values[18]) : 0F,
+                                        !String.IsNullOrEmpty(values[20]) ? float.Parse(values[20]) : 0F);
+                    }
+                    count++;
+                }
+            }
+        }
+
+
+        public static void PredictVolume(PredictionEngine<ScoreMagnitudeVolume, ModelOutput> predictionFunction, float companyID, float magnitude, float score, float? actualVolume = null)
+        {
             // Create single instance of sample data from first line of dataset for model input
             ScoreMagnitudeVolume sampleDataVolume = new ScoreMagnitudeVolume()
             {
                 CompanyID = companyID,
-                Magnitude = magnitiude,
+                Magnitude = magnitude,
                 Score = score,
             };
 
             // Make a single prediction on the sample data and print results
-            var predictionResultVolume = predictionFunctionVolume.Predict(sampleDataVolume);
+            var predictionResultVolume = predictionFunction.Predict(sampleDataVolume);
 
-            Console.WriteLine("Using model to make single prediction -- Comparing actual with predicted from sample data...\n\n");
-            Console.WriteLine($"CompanyID: {sampleDataVolume.CompanyID}");
-            Console.WriteLine($"Magnitude: {sampleDataVolume.Magnitude}");
-            Console.WriteLine($"Score: {sampleDataVolume.Score}");
-            Console.WriteLine($"\n\nPredicted Volume: {predictionResultVolume.Score}\n\n");
-            Console.WriteLine("=============== End of process, hit any key to finish ===============");
-            Console.ReadKey();
-        }
-
-        public static ITransformer TrainHigh(MLContext mlContext, string dataPath)
-        {
-            IDataView dataView = mlContext.Data.LoadFromTextFile<ScoreMagnitudeHigh>(dataPath, hasHeader: true, separatorChar: ',');
-
-            // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "polarity", "score", "subjectivity" });
-            var pipeline = mlContext.Transforms.CopyColumns(outputColumnName: "Label", inputColumnName: "high")
-                .Append(mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "score" })
-                .Append(mlContext.Regression.Trainers.FastTreeTweedie(new FastTreeTweedieTrainer.Options() { NumberOfLeaves = 17, MinimumExampleCountPerLeaf = 1, NumberOfTrees = 100, LearningRate = 0.3504487f, Shrinkage = 0.09932277f, LabelColumnName = "high", FeatureColumnName = "Features" })));
-
-            var model = pipeline.Fit(dataView);
-
-            return model;
-        }
-
-        public static ITransformer TrainLow(MLContext mlContext, string dataPath)
-        {
-            IDataView dataView = mlContext.Data.LoadFromTextFile<ScoreMagnitudeLow>(dataPath, hasHeader: true, separatorChar: ',');
-
-            // Data process configuration with pipeline data transformations 
-            var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "polarity", "score", "subjectivity" });
-            var pipeline = mlContext.Transforms.CopyColumns(outputColumnName: "Label", inputColumnName: "low")
-                .Append(mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "score" })
-                .Append(mlContext.Regression.Trainers.FastTreeTweedie(new FastTreeTweedieTrainer.Options() { NumberOfLeaves = 17, MinimumExampleCountPerLeaf = 1, NumberOfTrees = 100, LearningRate = 0.3504487f, Shrinkage = 0.09932277f, LabelColumnName = "low", FeatureColumnName = "Features" })));
-
-            var model = pipeline.Fit(dataView);
-
-            return model;
+            if (actualVolume.HasValue)
+            {
+                Console.WriteLine($"{sampleDataVolume.CompanyID} | {sampleDataVolume.Magnitude} | {sampleDataVolume.Score} | {predictionResultVolume.Score} | {actualVolume}");
+            }
+            else 
+            {
+                Console.WriteLine($"{sampleDataVolume.CompanyID} | {sampleDataVolume.Magnitude} | {sampleDataVolume.Score} | {predictionResultVolume.Score}");
+            }
         }
     }
 }
