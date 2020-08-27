@@ -236,6 +236,9 @@ def pubsub(event, context):
     db = firebase_admin.firestore.client()
 
     try:
+
+        #obselete use prediction/sentioment/main.py
+
         preArrangeData(db,companyID)
     except Exception as err:
         print(f'Error occurred: {err}')
