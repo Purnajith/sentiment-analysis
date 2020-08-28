@@ -1,0 +1,67 @@
+Code Generated
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|1    SdcaRegression                       -1.7618      11093.86 276214431.43 15446.82       0.7          1      |
+|2    LightGbmRegression                   -2.4247      10343.32 260215449.54 15180.83       0.7          2      |
+|3    FastTreeRegression                   -1.5764      10130.52 259442950.19 15024.19       1.0          3      |
+|4    FastTreeTweedieRegression            -2.0963       8485.77 239254619.66 14424.65       0.9          4      |
+|5    FastForestRegression                 -0.7160       9033.27 199518436.56 12920.14       1.0          5      |
+|6    LbfgsPoissonRegression               -2.4138      11286.08 291399477.15 16078.77       0.5          6      |
+|7    OnlineGradientDescentRegression      -1.3090      10356.49 239418423.71 14445.17       0.5          7      |
+|8    OlsRegression                        -1.9434      11338.44 285184873.67 15732.07       0.5          8      |
+|9    FastTreeRegression                   -0.3645       8387.72 281925146.45 14890.87       0.8          9      |
+|10   FastForestRegression                 -0.7485       9061.82 199899948.48 12920.63       2.7         10      |
+|11   OnlineGradientDescentRegression      -0.3539       8378.67 285307545.92 14945.36       0.5         11      |
+|12   FastTreeRegression                   -2.1941      10085.42 262779217.99 15344.68       1.5         12      |
+|13   FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.0         13      |
+|14   OnlineGradientDescentRegression     -287736976869034000000000000000000000000000000000000000.0000 2568294894919180000000000000000.00 54915415031138700000000000000000000000000000000000000000000000.00 3403478496135180000000000000000.00       0.5         14|
+|15   FastTreeRegression                   -0.2809       8171.28 268212852.88 14469.66       0.8         15      |
+|16   FastForestRegression                 -0.9503       9697.13 226011485.32 13905.05       2.4         16      |
+|17   OnlineGradientDescentRegression      -0.3394       8746.39 274273644.97 14606.65       0.6         17      |
+|18   FastTreeRegression                   -0.9732       9173.96 218559795.67 13559.47       2.0         18      |
+|19   FastForestRegression                 -0.7485       9061.82 199899948.48 12920.63       3.4         19      |
+|20   OnlineGradientDescentRegression      -0.3145       8305.21 276151818.08 14694.14       0.6         20      |
+|21   FastTreeRegression                   -0.6458       8603.64 206453816.80 13041.00       0.9         21      |
+|22   FastForestRegression                 -0.1736       5308.88 127226971.46  7290.07       0.8         22      |
+|23   OnlineGradientDescentRegression      -0.4579       8761.04 255973655.93 14274.23       0.6         23      |
+|24   FastTreeRegression                   -2.7269       9370.29 302888802.75 16530.60       2.3         24      |
+|25   FastForestRegression                 -1.1457       9525.48 237294858.22 14267.33       5.0         25      |
+|26   OnlineGradientDescentRegression     -5671627110563870000000.0000 75204397459004.40 37277545588986800000000000000.00 78380535877016.50       0.6         26|
+|27   FastTreeRegression                   -1.3836       9262.68 226503839.55 14075.28       1.0         27      |
+|28   FastForestRegression                  0.0000          0.00         0.00     0.00       0.8         28      |
+|29   OnlineGradientDescentRegression     -18318356828716400000000000000000000000000000000000000000.0000 11855684303055900000000000000000.00 811949944751176000000000000000000000000000000000000000000000000.00 13125387291414400000000000000000.00       0.5         29|
+|30   FastTreeRegression                   -0.9722       9251.89 217532402.68 13534.05       1.1         30      |
+|31   FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.0         31      |
+|32   OnlineGradientDescentRegression      -0.5997       9312.39 310801362.56 15805.65       0.5         32      |
+|33   FastTreeRegression                   -2.2983      10841.11 282958271.49 15911.37       2.4         33      |
+|34   FastForestRegression                 -0.7485       9061.82 199899948.48 12920.63       3.6         34      |
+|35   OnlineGradientDescentRegression      -0.3898       8468.22 290638681.34 15126.52       0.5         35      |
+|36   FastTreeRegression                   -0.4802       8221.96 210739166.65 13051.30       1.1         36      |
+|37   FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.1         37      |
+|38   OnlineGradientDescentRegression      -0.3567       8308.62 282801363.96 14925.83       0.5         38      |
+|39   FastTreeRegression                   -0.5624       8323.83 208589629.40 12999.64       2.7         39      |
+|40   FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.2         40      |
+|41   OnlineGradientDescentRegression      -0.4167       8505.03 291320107.00 15187.99       0.6         41      |
+|42   FastTreeRegression                   -2.0553      10523.51 273292346.75 15524.00       2.8         42      |
+|43   FastForestRegression                 -1.0969       9535.01 229653746.20 14103.45       4.1         43      |
+|44   OnlineGradientDescentRegression      -0.3864       8453.51 288550770.48 15077.60       0.8         44      |
+
+===============================================Experiment Results=================================================
+------------------------------------------------------------------------------------------------------------------
+|                                                     Summary                                                    |
+------------------------------------------------------------------------------------------------------------------
+|ML Task: regression                                                                                             |
+|Dataset: C:\Users\purna\source\repos\Purnajith\sentiment-analysis\prediction\price\data2\arrangedData.csv       |
+|Label : volume                                                                                                  |
+|Total experiment time : 59.0691964 Secs                                                                         |
+|Total number of models explored: 44                                                                             |
+------------------------------------------------------------------------------------------------------------------
+
+|                                              Top 5 models explored                                             |
+------------------------------------------------------------------------------------------------------------------
+|     Trainer                             RSquared Absolute-loss Squared-loss RMS-loss  Duration #Iteration      |
+|1    FastForestRegression                  0.0000          0.00         0.00     0.00       0.8          1      |
+|2    FastForestRegression                 -0.1736       5308.88 127226971.46  7290.07       0.8          2      |
+|3    FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.0          3      |
+|4    FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.0          4      |
+|5    FastForestRegression                 -0.1744       8704.58 214982541.32 12308.55       1.1          5      |
+------------------------------------------------------------------------------------------------------------------

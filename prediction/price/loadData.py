@@ -13,6 +13,26 @@ def getDocumentWithData(db, collection, ID):
         print(u'No such document : ' + ID)
         return None
 
+def keywords():
+    try:
+        firebase_admin.initialize_app()
+        pass
+    except Exception as err:
+        print(f'Error occurred: {err}')
+        pass
+
+    # get all current records 
+    db = firebase_admin.firestore.client()
+    
+    companyCollection = db.collection(u'company').get()
+
+
+    for companyDoc in companyCollection:
+        doc = getDocumentWithData(db, 'company', companyDoc.id)   
+        print(doc['id'])
+        print(','.join(map(str,doc['keywords'])))
+    pass
+
 def loadData ():
 
     try:
@@ -82,4 +102,5 @@ def loadData ():
     pass
 
 
-loadData()
+#loadData()
+keywords()

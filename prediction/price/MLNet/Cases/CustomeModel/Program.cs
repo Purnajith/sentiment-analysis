@@ -57,6 +57,8 @@ namespace CustomeModel
             // Data process configuration with pipeline data transformations 
             var pipeline = mlContext.Transforms.CopyColumns(outputColumnName: "Label", inputColumnName: "volume")
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "companyID", "magnitude", "score" })
+                //.Append(mlContext.Transforms.Concatenate("Features", new[] { "code", "cseEndTime", "cseStartTime", "magnitude", "score" })
+                //.Append(mlContext.Regression.Trainers.Ols(new OlsTrainer.Options() { L2Regularization = 0.1f, LabelColumnName = "volume", FeatureColumnName = "Features" })));
                 .Append(mlContext.Regression.Trainers.FastTreeTweedie(new FastTreeTweedieTrainer.Options() { NumberOfLeaves = 17, MinimumExampleCountPerLeaf = 1, NumberOfTrees = 100, LearningRate = 0.3504487f, Shrinkage = 0.09932277f, LabelColumnName = "volume", FeatureColumnName = "Features" })));
                 //.Append(mlContext.Regression.Trainers.FastForest(numberOfLeaves: 6, minimumExampleCountPerLeaf: 1, numberOfTrees: 500, labelColumnName: "volume", featureColumnName: "Features")));
 
@@ -114,6 +116,8 @@ namespace CustomeModel
                                                    ITransformer modelVolume, 
                                                    string dataPath)
         {
+            DateTime start = DateTime.Now;
+
             var predictionFunctionVolume = mlContextVolume.Model.CreatePredictionEngine<ScoreMagnitudeVolume, ModelOutput>(modelVolume);
 
             Console.WriteLine("Using model to make single prediction -- Comparing actual with predicted from sample data...\n\n");
@@ -138,6 +142,17 @@ namespace CustomeModel
                     count++;
                 }
             }
+
+            DateTime end = DateTime.Now;
+
+            Console.WriteLine("------------------------------Time Benchmark---------------------------------------");
+
+            Console.WriteLine("Start Time : " +  start.ToLongTimeString() + " End time : "+ end.ToLongTimeString());
+            TimeSpan duration = end.Subtract(start);
+            Console.WriteLine(duration);
+            Console.WriteLine("Total time taken for prediction in seconds : " + duration.TotalSeconds );
+
+            Console.WriteLine("------------------------------Time Benchmark---------------------------------------");
         }
 
 
